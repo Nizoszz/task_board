@@ -15,22 +15,27 @@ import static com.nizo.board.persistence.dao.ConnectionConfig.getConnection;
 
 public class MainMenu{
     private final Scanner scanner = new Scanner(System.in);
-    public void execute() throws SQLException{
-        System.out.println("Bem-vindo ao gerenciador de boards, escolha a opção desejada: ");
-        var option = -1;
-        while (true){
-            System.out.println("1 - Criar um novo board.");
-            System.out.println("2 - Selecionar um board existente.");
-            System.out.println("3 - Excluir um board.");
-            System.out.println("4 - Sair.");
-            option = scanner.nextInt();
-            switch (option){
-                case 1 -> createBoard();
-                case 2 -> selectBoard();
-                case 3 -> deleteBoard();
-                case 4 -> System.exit(0);
-                default -> System.out.println("Opção inválida. Tente novamente.");
+
+    public void execute(){
+        try{
+            System.out.println("Bem-vindo ao gerenciador de boards, escolha a opção desejada: ");
+            var option = -1;
+            while (true){
+                System.out.println("1 - Criar um novo board.");
+                System.out.println("2 - Selecionar um board existente.");
+                System.out.println("3 - Excluir um board.");
+                System.out.println("4 - Sair.");
+                option = scanner.nextInt();
+                switch (option){
+                    case 1 -> createBoard();
+                    case 2 -> selectBoard();
+                    case 3 -> deleteBoard();
+                    case 4 -> System.exit(0);
+                    default -> System.out.println("Opção inválida. Tente novamente.");
+                }
             }
+        } catch (SQLException ex) {
+            System.out.println("Ocorreu um erro ao acessar o banco de dados: " + ex.getMessage());
         }
     }
     public void createBoard() throws SQLException{
@@ -41,6 +46,7 @@ public class MainMenu{
 
         System.out.println("Seu board haverá colunas além das 3 padrões? Se sim, informe quantas ou digite 0: ");
         var additionalColumns = scanner.nextInt();
+
         List<BoardColumnEntity> columns = new ArrayList<>();
 
         System.out.println("Informe o nome inicial da coluna do board: ");
@@ -79,12 +85,9 @@ public class MainMenu{
         try(var connection = getConnection()){
             var queryService = new BoardQueryService(connection);
             var boadExists = queryService.getBoardById(boardId);
-            if(boadExists == null){
-                System.out.println("Board não encontrado.");
-                return;
-            }
-            var boardMenu = new BoardMenu(boadExists);
-            boardMenu.execute();
+            boadExists.ifPresentOrElse(
+                    b -> new BoardMenu(b).execute(),
+                    () -> System.out.println("Board não encontrado"));
         }
     }
 

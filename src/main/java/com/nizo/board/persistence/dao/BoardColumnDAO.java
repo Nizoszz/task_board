@@ -3,7 +3,6 @@ package com.nizo.board.persistence.dao;
 import com.mysql.cj.jdbc.StatementImpl;
 import com.nizo.board.dto.BoardColumnDTO;
 import com.nizo.board.persistence.entity.BoardColumnEntity;
-import com.nizo.board.persistence.entity.BoardColumnKind;
 import com.nizo.board.persistence.entity.CardEntity;
 import lombok.AllArgsConstructor;
 
@@ -36,7 +35,7 @@ public class BoardColumnDAO{
     }
     public List<BoardColumnEntity> findByBoardId(Long id) throws SQLException {
         List<BoardColumnEntity> entities = new ArrayList<>();
-        var sql = "SELECT id, name, board_column_order FROM tb_board_columns WHERE id = ? ORDER BY board_column_order;";
+        var sql = "SELECT id, name, board_column_order, kind FROM tb_board_columns WHERE board_id = ? ORDER BY board_column_order;";
         try (var statement = connection.prepareStatement(sql)) {
             statement.setLong(1, id);
             var resultSet = statement.executeQuery();
@@ -52,33 +51,38 @@ public class BoardColumnDAO{
         }
     }
     public Optional<BoardColumnEntity> findById(Long id) throws SQLException {
-        List<BoardColumnEntity> entities = new ArrayList<>();
         var sql =  """
                 SELECT bc.name,
                        bc.kind,
                        c.id,
                        c.title,
                        c.description
-                  FROM BOARDS_COLUMNS bc
-                  LEFT JOIN CARDS c
+                  FROM tb_board_columns bc
+                  LEFT JOIN tb_cards c
                     ON c.board_column_id = bc.id
                 WHERE bc.id = ?;
-            """;;
+            """;
         try (var statement = connection.prepareStatement(sql)) {
             statement.setLong(1, id);
-            statement.executeQuery();
-            var resultSet = statement.getResultSet();
-            if(resultSet.next()) {
-                var entity = BoardColumnEntity.builder().name(resultSet.getString("bc.name")).kind(findByName(resultSet.getString("bc.kind")));
+            var resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                var entity = BoardColumnEntity.builder().name(resultSet.getString("bc.name")).kind(findByName(resultSet.getString("bc.kind"))).build();
+                entity.getCards().add(CardEntity.builder().id(resultSet.getLong("c.id")).title(resultSet.getString("c.title")).description(resultSet.getString("c.description")).build());
                 while (resultSet.next()) {
-                    var card = CardEntity.builder();
-                    if(isNull(resultSet.getString("c.title"))) {
-                        card.id(resultSet.getLong("c.id")).title(resultSet.getString("c.title"))
-                                .description(resultSet.getString("c.description"));
-                        entity.cards(List.of(card.build()));
+                    if (!isNull(resultSet.getString("c.title"))) {
+                        var card = CardEntity.builder().id(resultSet.getLong("c.id")).title(resultSet.getString("c.title")).description(resultSet.getString("c.description")).build();
+                        entity.getCards().add(card);
                     }
                 }
-                return Optional.of(entity.build());
+                return Optional.of(entity);
+//                while (resultSet.next()) {
+//                    if(!isNull(resultSet.getString("c.title"))) {
+//                        var card = CardEntity.builder().id(resultSet.getLong("c.id"))
+//                                .title(resultSet.getString("c.title"))
+//                                .description(resultSet.getString("c.description")).build();
+//                        entity.getCards().add(card);
+//                    }
+//                }
             }
             return Optional.empty();
         }
@@ -91,11 +95,11 @@ public class BoardColumnDAO{
                            bc.name,
                            bc.kind,
                            (SELECT COUNT(c.id)
-                                   FROM CARDS c
+                                   FROM tb_cards c
                                   WHERE c.board_column_id = bc.id) cards_amount
-                      FROM BOARDS_COLUMNS bc
+                      FROM tb_board_columns bc
                      WHERE board_id = ?
-                     ORDER BY `order`;
+                     ORDER BY board_column_order;
                 """;
         try (var statement = connection.prepareStatement(sql)) {
             statement.setLong(1, id);
