@@ -75,6 +75,22 @@ public class CardService{
             throw ex;
         }
     }
+    public void unblock (Long cardId, Long boardId, String reason) throws SQLException{
+        try{
+            var cardDao = new CardDAO(connection);
+            var cardExists = cardDao.findById(cardId, boardId);
+            var dto = cardExists.orElseThrow(() -> new RuntimeException("O card de id %s não foi encontrado".formatted(cardId)));
+            if(!dto.blocked()){
+                throw new RuntimeException("O card %s não está bloqueado.".formatted(cardId));
+            }
+            var blockDAO = new BlockDAO(connection);
+            blockDAO.unblock(reason, cardId);
+            connection.commit();
+        } catch (SQLException ex){
+            connection.rollback();
+            throw ex;
+        }
+    }
     private CardDetailsDTO checkedCardExistsAndBlock(Long cardId,Long boardId) throws SQLException{
         var cardDao = new CardDAO(connection);
         var cardExists = cardDao.findById(cardId, boardId);

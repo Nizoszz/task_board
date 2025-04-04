@@ -102,7 +102,21 @@ public class BoardMenu{
         }
     }
 
-    private void unblockCard() throws SQLException {}
+    private void unblockCard() throws SQLException {
+        System.out.println("Informe o id do card que deseja desbloquear: ");
+        var cardId = scanner.nextLong();
+        scanner.nextLine();
+        System.out.println("Informa o motivo do desbloqueio do card: ");
+        var reason = scanner.nextLine();
+        System.out.println(reason);
+        try(var connection = getConnection()){
+            new CardService(connection).unblock(cardId, boardEntity.getId(), reason);
+            System.out.println("Desloqueado com sucesso!");
+        }
+        catch (RuntimeException ex) {
+            System.out.println("Ocorreu um erro ao desbloquear o card: " + ex.getMessage());
+        }
+    }
 
     private void cancelCard() throws SQLException {
         System.out.println("Informe o id do card que deseja mover para a coluna de cancelamento: ");
@@ -158,7 +172,7 @@ public class BoardMenu{
             new CardQueryService(connection).getById(selectedCardId, boardEntity.getId()).ifPresentOrElse(c -> {
                 System.out.printf("Card: %s - %s\n", c.id(), c.title());
                 System.out.printf("Descrição: %s\n", c.description());
-                System.out.println(c.blocked() ? String.format("Está bloqueado. Motivo: %s", c.blockReason()) : "Não está bloqueado");
+                System.out.println(c.blocked() ? String.format("Bloqueio: Está bloqueado.\nMotivo: %s", c.blockReason()) : "Bloqueio: Não está bloqueado");
                 System.out.println(
                         c.blocksAmount() > 0
                                 ? String.format("Já foi bloqueado %d %s", c.blocksAmount(), c.blocksAmount() == 1 ? "vez" : "vezes")
