@@ -66,7 +66,7 @@ public class BoardColumnDAO{
             statement.setLong(1, id);
             var resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                var entity = BoardColumnEntity.builder().name(resultSet.getString("bc.name")).kind(findByName(resultSet.getString("bc.kind"))).build();
+                var entity = BoardColumnEntity.builder().name(resultSet.getString("bc.name")).kind(findByName(resultSet.getString("bc.kind"))).cards(new ArrayList<>()).build();
                 entity.getCards().add(CardEntity.builder().id(resultSet.getLong("c.id")).title(resultSet.getString("c.title")).description(resultSet.getString("c.description")).build());
                 while (resultSet.next()) {
                     if (!isNull(resultSet.getString("c.title"))) {

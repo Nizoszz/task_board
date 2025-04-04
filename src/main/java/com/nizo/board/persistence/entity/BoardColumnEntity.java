@@ -17,5 +17,5 @@ public class BoardColumnEntity{
     private BoardEntity board = new BoardEntity();
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private List<CardEntity> cards = new ArrayList<>();
+    private List<CardEntity> cards;
 }

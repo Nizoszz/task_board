@@ -26,6 +26,7 @@ public class MainMenu{
                 System.out.println("3 - Excluir um board.");
                 System.out.println("4 - Sair.");
                 option = scanner.nextInt();
+                scanner.nextLine();
                 switch (option){
                     case 1 -> createBoard();
                     case 2 -> selectBoard();
@@ -42,32 +43,32 @@ public class MainMenu{
         var entity = new BoardEntity();
 
         System.out.println("Informe o nome do board: ");
-        entity.setName(scanner.next());
-
+        var boardName = scanner.nextLine();
+        entity.setName(boardName);
         System.out.println("Seu board haverá colunas além das 3 padrões? Se sim, informe quantas ou digite 0: ");
         var additionalColumns = scanner.nextInt();
-
+        scanner.nextLine();
         List<BoardColumnEntity> columns = new ArrayList<>();
 
         System.out.println("Informe o nome inicial da coluna do board: ");
-        var initColumnName = scanner.next();
+        var initColumnName = scanner.nextLine();
         var initColumn = this.factoryColumnBoard(initColumnName, BoardColumnKind.INIT, 0);
         columns.add(initColumn);
 
         for (int i = 0; i < additionalColumns; i++){
             System.out.println("Informe o nome da coluna de tarefa pendente: ");
-            var pendingColumnName = scanner.next();
+            var pendingColumnName = scanner.nextLine();
             var pendingColumn = this.factoryColumnBoard(pendingColumnName, BoardColumnKind.PENDING, i + 1);
             columns.add(pendingColumn);
         }
 
         System.out.println("Informe o nome da coluna final: ");
-        var finalColumnName = scanner.next();
+        var finalColumnName = scanner.nextLine();
         var finalColumn = this.factoryColumnBoard(finalColumnName, BoardColumnKind.FINAL, additionalColumns + 1);
         columns.add(finalColumn);
 
         System.out.println("Informe o nome coluna de cancelamento do board: ");
-        var cancelColumnName = scanner.next();
+        var cancelColumnName = scanner.nextLine();
         var cancelColumn = this.factoryColumnBoard(cancelColumnName, BoardColumnKind.CANCEL, additionalColumns + 2);
         columns.add(cancelColumn);
 
